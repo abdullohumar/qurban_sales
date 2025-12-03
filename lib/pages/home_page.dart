@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qurban_sales/pages/input_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -36,9 +37,11 @@ class HomePage extends StatelessWidget {
                 icon: Icons.add_circle_outline, 
                 label: "Input Data Baru", 
                 color: const Color(0xFF1B5E20), 
-                onTap: () {}
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const InputPage()));
+                }
               ),
-
+              SizedBox(height: 20),
               _buildMenuButton(
                 context,  
                 icon: Icons.history_edu, 
