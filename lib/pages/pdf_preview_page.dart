@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Untuk memuat font jika perlu
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -16,9 +16,7 @@ class PdfPreviewPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Preview Tanda Terima")),
       body: PdfPreview(
-        // Nama file saat di-share
         pdfFileName: 'Tanda_Terima_${sale.nama.replaceAll(" ", "_")}.pdf',
-        // Kertas A4
         pageFormats: const {'A4': PdfPageFormat.a4},
         build: (format) => _generatePdf(format, sale),
       ),
@@ -27,84 +25,120 @@ class PdfPreviewPage extends StatelessWidget {
 
   Future<Uint8List> _generatePdf(PdfPageFormat format, Sale sale) async {
     final pdf = pw.Document();
-
-    // Format Tanggal Hari Ini (Indonesia)
     final String formattedDate = DateFormat('d MMMM yyyy', 'id_ID').format(DateTime.now());
+    
+    // Warna Teks Header (Biru Tua sesuai brand image sebelumnya)
+    final PdfColor brandColor = PdfColor.fromInt(0xFF1E3A8A);
 
     pdf.addPage(
       pw.Page(
         pageFormat: format,
-        margin: const pw.EdgeInsets.all(40), // Margin pinggir kertas
+        // Margin kita buat agak besar biar terlihat elegan (mirip surat resmi)
+        margin: const pw.EdgeInsets.all(50), 
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // --- HEADER (KOP SURAT) ---
+              // --- 1. HEADER (Kecil & Di Tengah) ---
               pw.Center(
-                child: pw.Text("Rejo Farm",
-                    style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                child: pw.Column(
+                  children: [
+                    pw.Text("Rejo Farm",
+                        style: pw.TextStyle(
+                            color: brandColor,
+                            fontSize: 26, // Ukuran pas, tidak terlalu raksasa
+                            fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 5),
+                    pw.Text("Ds. Banjarejo, RT.02, RW.02, Kec. Pakis, Kab. Malang",
+                        style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                  ],
+                ),
               ),
-              pw.Center(
-                child: pw.Text("Ds. Banjarejo, RT.02, RW.02, Kec. Pakis, Kab. Malang",
-                    style: const pw.TextStyle(fontSize: 12), textAlign: pw.TextAlign.center),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Divider(thickness: 2), // Garis pemisah
-              pw.SizedBox(height: 20),
+              
+              pw.SizedBox(height: 15),
+              pw.Divider(thickness: 1, color: brandColor), // Garis pemisah tipis
+              pw.SizedBox(height: 30), // Jarak ke judul
 
-              // --- JUDUL ---
+              // --- 2. JUDUL ---
               pw.Center(
                 child: pw.Text("TANDA TERIMA PEMBAYARAN",
-                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline)),
+                    style: pw.TextStyle(
+                      fontSize: 14, 
+                      fontWeight: pw.FontWeight.bold, 
+                      decoration: pw.TextDecoration.underline,
+                      letterSpacing: 1.5 // Sedikit renggang biar elegan
+                    )),
               ),
-              pw.SizedBox(height: 30),
+              
+              pw.SizedBox(height: 40), // Memberi napas sebelum masuk form
 
-              // --- KONTEN UTAMA ---
+              // --- 3. ISI FORM (Dibuat Berjarak/Tidak Mepet) ---
+              
               pw.Text("Sudah diterima dari:", style: const pw.TextStyle(fontSize: 12)),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 15), // Jarak antar elemen
+
+              // Input Nama
+              _buildFormRow("Nama", sale.nama),
+              pw.SizedBox(height: 25), // Jarak LEBIH LEBAR agar clear
               
-              _buildRow("Nama", ": ${sale.nama}"),
-              _buildRow("Alamat", ": ${sale.alamat}"),
-              _buildRow("No. HP", ": ${sale.noHp}"), // Tambahan biar lengkap
+              // Input Alamat
+              _buildFormRow("Alamat", sale.alamat),
+              pw.SizedBox(height: 25), // Jarak LEBIH LEBAR agar clear
               
-              pw.SizedBox(height: 20),
-              
-              pw.Text("Sejumlah uang dengan nominal:", style: const pw.TextStyle(fontSize: 12)),
-              pw.SizedBox(height: 5),
+              // Input No HP (Opsional, kalau mau ditampilkan)
+               _buildFormRow("No. HP", sale.noHp),
+               pw.SizedBox(height: 35), // Jarak sebelum masuk nominal
+
+              // --- 4. NOMINAL & KETERANGAN ---
               pw.Container(
-                padding: const pw.EdgeInsets.all(10),
+                width: double.infinity,
+                padding: const pw.EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(),
-                  color: PdfColors.grey100,
+                  border: pw.Border.all(color: PdfColors.grey400), // Kotak tipis
+                  color: PdfColors.grey100, // Background abu sangat muda
                 ),
-                child: pw.Text(
-                  "Rp 2.500.000,- (Dua Juta Lima Ratus Ribu Rupiah)", 
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)
-                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text("Nominal:", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    pw.SizedBox(height: 5),
+                    pw.Row(
+                      children: [
+                        pw.Text("Rp 2.500.000,-", style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                        pw.SizedBox(width: 10),
+                        pw.Text("(Dua Juta Lima Ratus Ribu Rupiah)", style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic)),
+                      ]
+                    ),
+                  ]
+                )
               ),
 
-              pw.SizedBox(height: 20),
-              
+              pw.SizedBox(height: 25),
+
+              // Text Akad
               pw.Text(
-                "Untuk pembayaran di muka (Akad Salam) hewan kurban dengan kriteria domba jantan dengan bobot hidup 35 kg yang akan disediakan pada tanggal 1 Dzulhijjah 1447 H.",
-                style: const pw.TextStyle(fontSize: 12, lineSpacing: 5),
+                "Untuk pembayaran di muka (Akad Salam) hewan kurban dengan kriteria domba jantan dengan bobot hidup minimal 35 kg yang akan disediakan pada tanggal 1 Dzulhijjah 1447 H.",
+                style: const pw.TextStyle(fontSize: 12, lineSpacing: 6), // Spasi antar baris paragraf diperlebar
                 textAlign: pw.TextAlign.justify
               ),
 
-              pw.SizedBox(height: 50),
+              pw.Spacer(), // Dorong footer ke paling bawah halaman
 
-              // --- FOOTER (Tanda Tangan) ---
+              // --- 5. FOOTER (Tanda Tangan) ---
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.end,
                 children: [
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
-                      pw.Text("Penerima: Umar Rahman Gunawan (Pemilik Rejo Farm)", style: const pw.TextStyle(fontSize: 10)),
+                      pw.Text("Penerima:", style: const pw.TextStyle(fontSize: 10)),
                       pw.SizedBox(height: 5),
                       pw.Text("Malang, $formattedDate", style: const pw.TextStyle(fontSize: 12)),
-                      pw.SizedBox(height: 70), // Ruang tanda tangan
-                      pw.Text("Umar Rahman Gunawan", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12, decoration: pw.TextDecoration.underline)),
+                      
+                      pw.SizedBox(height: 70), // Ruang Tanda Tangan Luas
+                      
+                      pw.Text("Umar Rahman Gunawan", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline)),
+                      pw.Text("Pemilik Rejo Farm", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                     ],
                   ),
                 ],
@@ -118,17 +152,28 @@ class PdfPreviewPage extends StatelessWidget {
     return pdf.save();
   }
 
-  // Helper untuk membuat baris titik dua rapi
-  pw.Widget _buildRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 5),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.SizedBox(width: 80, child: pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-          pw.Expanded(child: pw.Text(value)),
-        ],
-      ),
+  // Widget Baris Form yang Rapi & Berjarak
+  pw.Widget _buildFormRow(String label, String value) {
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
+      children: [
+        pw.SizedBox(
+          width: 80, 
+          child: pw.Text("$label:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold))
+        ),
+        pw.Expanded(
+          child: pw.Container(
+            padding: const pw.EdgeInsets.only(bottom: 2),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(bottom: pw.BorderSide(width: 0.5, style: pw.BorderStyle.dashed)) // Garis putus-putus biar estetik
+            ),
+            child: pw.Text(
+              value, 
+              style: pw.TextStyle(fontSize: 13)
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
