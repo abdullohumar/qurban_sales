@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qurban_sales/pages/history_page.dart';
 import 'package:qurban_sales/pages/input_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -47,7 +48,9 @@ class HomePage extends StatelessWidget {
                 icon: Icons.history_edu, 
                 label: "History Penjualan", 
                 color: Colors.orange[800]!, 
-                onTap: () {}
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryPage()));
+                }
               )
             ],
           ),
