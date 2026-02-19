@@ -21,7 +21,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -31,7 +31,7 @@ class DatabaseHelper {
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
-    const textNullable = 'TEXT'; // New nullable type for weight
+    const textNullable = 'TEXT'; // New nullable type for weight & gender
 
     await db.execute('''
       CREATE TABLE sales (
@@ -43,7 +43,8 @@ class DatabaseHelper {
         createdAt $textType,
         type $textType,
         price INTEGER NOT NULL DEFAULT 2500000,
-        weight $textNullable
+        weight $textNullable,
+        gender $textNullable
       )
 ''');
   }
@@ -60,6 +61,9 @@ class DatabaseHelper {
     }
     if (oldVersion < 3) {
       await db.execute("ALTER TABLE sales ADD COLUMN weight TEXT");
+    }
+    if (oldVersion < 4) {
+      await db.execute("ALTER TABLE sales ADD COLUMN gender TEXT");
     }
   }
 

@@ -8,6 +8,7 @@ class Sale {
   final String type;
   final int price;
   final String? weight; // Nullable because old data might not have it
+  final String? gender;
 
   Sale({
     this.id,
@@ -19,6 +20,7 @@ class Sale {
     required this.type,
     required this.price,
     this.weight,
+    this.gender,
   });
 
   // Mengubah data dari Database (Map) ke bentuk Object Dart
@@ -32,6 +34,7 @@ class Sale {
     type: json['type'] ?? 'Akad Salam',
     price: json['price'] ?? 2500000,
     weight: json['weight'],
+    gender: json['gender'],
   );
 
   // Mengubah Object Dart ke bentuk Map (agar bisa disimpan ke Database)
@@ -46,6 +49,7 @@ class Sale {
       'type': type,
       'price': price,
       'weight': weight,
+      'gender': gender,
     };
   }
 }

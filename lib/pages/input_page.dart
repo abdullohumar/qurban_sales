@@ -23,6 +23,7 @@ class _InputPageState extends State<InputPage> {
     text: "2500000",
   ); // Default price
   final _weightController = TextEditingController(); // Controller for weight
+  String? _selectedGender = 'Jantan'; // Default gender
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +54,10 @@ class _InputPageState extends State<InputPage> {
                 TextInputType.multiline,
                 maxLines: 3,
               ),
+
+              _buildDropdownGender(),
+
+              const SizedBox(height: 15),
 
               if (widget.transactionType == "Bay' Naqdan")
                 _buildTextField(
@@ -104,6 +109,30 @@ class _InputPageState extends State<InputPage> {
     );
   }
 
+  Widget _buildDropdownGender() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: DropdownButtonFormField<String>(
+        value: _selectedGender,
+        decoration: const InputDecoration(
+          labelText: "Jenis Kelamin Hewan",
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.pets, color: Color(0xFF1B5E20)),
+        ),
+        items: ['Jantan', 'Betina'].map((String value) {
+          return DropdownMenuItem<String>(value: value, child: Text(value));
+        }).toList(),
+        onChanged: (newValue) {
+          setState(() {
+            _selectedGender = newValue;
+          });
+        },
+        validator: (value) =>
+            value == null ? 'Harap pilih jenis kelamin' : null,
+      ),
+    );
+  }
+
   void _onFinishPressed() {
     if (_formKey.currentState!.validate()) {
       // Tampilkan Pop Up Pilihan
@@ -143,6 +172,7 @@ class _InputPageState extends State<InputPage> {
         weight: _weightController.text.isNotEmpty
             ? _weightController.text
             : null,
+        gender: _selectedGender,
       );
 
       // Simpan ke Database

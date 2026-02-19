@@ -161,8 +161,8 @@ class PdfPreviewPage extends StatelessWidget {
               // Text Akad
               pw.Text(
                 sale.type == "Bay' Naqdan"
-                    ? "Untuk pembayaran tunai (Bay' Naqdan) hewan kurban dengan kriteria domba jantan dengan bobot hidup minimal ${sale.weight ?? '35'} kg."
-                    : "Untuk pembayaran di muka (Akad Salam) hewan kurban dengan kriteria domba jantan dengan bobot hidup minimal 35 kg yang akan disediakan pada tanggal 1 Dzulhijjah 1447 H.",
+                    ? "Untuk pembayaran tunai (Bay' Naqdan) hewan kurban dengan kriteria domba ${(sale.gender ?? 'Jantan').toLowerCase()} dengan bobot hidup minimal ${sale.weight ?? '35'} kg."
+                    : "Untuk pembayaran di muka (Akad Salam) hewan kurban dengan kriteria domba ${(sale.gender ?? 'Jantan').toLowerCase()} dengan bobot hidup minimal 35 kg yang akan disediakan pada tanggal 1 Dzulhijjah 1447 H.",
                 style: const pw.TextStyle(
                   fontSize: 12,
                   lineSpacing: 6,
