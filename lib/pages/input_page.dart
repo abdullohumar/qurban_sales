@@ -4,7 +4,8 @@ import 'package:qurban_sales/models/sale.dart';
 import 'package:qurban_sales/pages/pdf_preview_page.dart';
 
 class InputPage extends StatefulWidget {
-  const InputPage({super.key});
+  final String transactionType;
+  const InputPage({super.key, required this.transactionType});
 
   @override
   State<InputPage> createState() => _InputPageState();
@@ -18,6 +19,10 @@ class _InputPageState extends State<InputPage> {
   final _namaController = TextEditingController();
   final _hpController = TextEditingController();
   final _alamatController = TextEditingController();
+  final _hargaController = TextEditingController(
+    text: "2500000",
+  ); // Default price
+  final _weightController = TextEditingController(); // Controller for weight
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +43,23 @@ class _InputPageState extends State<InputPage> {
               ),
               _buildTextField("Nomor HP", _hpController, TextInputType.phone),
               _buildTextField(
+                "Harga (Rp)",
+                _hargaController,
+                TextInputType.number,
+              ),
+              _buildTextField(
                 "Alamat",
                 _alamatController,
                 TextInputType.multiline,
                 maxLines: 3,
               ),
+
+              if (widget.transactionType == "Bay' Naqdan")
+                _buildTextField(
+                  "Bobot Hewan (Kg)",
+                  _weightController,
+                  TextInputType.number,
+                ),
 
               const SizedBox(height: 30),
 
@@ -111,34 +128,51 @@ class _InputPageState extends State<InputPage> {
   }
 
   Future<void> _saveData({required bool cetak}) async {
-    // 1. Buat object Sale
-    final sale = Sale(
-      nomor: _nomorController.text,
-      nama: _namaController.text,
-      noHp: _hpController.text,
-      alamat: _alamatController.text,
-      createdAt: DateTime.now().toString(),
-    );
-
-    // Simpan ke Database
-    await DatabaseHelper.instance.create(sale);
-
-    if (!mounted) return;
-
-    // Navigasi
-    Navigator.pop(context); // Tutup dialog
-
-    if (cetak) {
-      // Jika cetak, arahkan ke halaman PDF
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PdfPreviewPage(sale: sale)),
+    try {
+      // 1. Buat object Sale
+      final sale = Sale(
+        nomor: _nomorController.text,
+        nama: _namaController.text,
+        noHp: _hpController.text,
+        alamat: _alamatController.text,
+        createdAt: DateTime.now().toString(),
+        type: widget.transactionType,
+        price: int.parse(
+          _hargaController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        ), // Remove non-numeric chars
+        weight: _weightController.text.isNotEmpty
+            ? _weightController.text
+            : null,
       );
-    } else {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Data berhasil disimpan")));
+
+      // Simpan ke Database
+      await DatabaseHelper.instance.create(sale);
+
+      if (!mounted) return;
+
+      // Navigasi
+      Navigator.pop(context); // Tutup dialog
+
+      if (cetak) {
+        // Jika cetak, arahkan ke halaman PDF
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PdfPreviewPage(sale: sale)),
+        );
+      } else {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Data berhasil disimpan")));
+      }
+    } catch (e) {
+      // Handle error
+      if (mounted) {
+        Navigator.pop(context); // Tutup dialog jika masih terbuka
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Gagal menyimpan data: $e")));
+      }
     }
   }
 }

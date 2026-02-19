@@ -50,14 +50,24 @@ class _HistoryPageState extends State<HistoryPage> {
             padding: const EdgeInsets.all(10),
             itemBuilder: (context, index) {
               final sale = sales[index];
-              
+
               // Format tanggal (contoh: 12 Okt 2024, 14:30)
               final date = DateTime.parse(sale.createdAt);
-              final dateString = DateFormat('d MMM yyyy, HH:mm', 'id_ID').format(date);
+              final dateString = DateFormat(
+                'd MMM yyyy, HH:mm',
+                'id_ID',
+              ).format(date);
+              final currencyFormatter = NumberFormat.currency(
+                locale: 'id_ID',
+                symbol: 'Rp ',
+                decimalDigits: 0,
+              );
+              final priceString = currencyFormatter.format(sale.price);
 
               return Dismissible(
                 key: Key(sale.id.toString()), // ID unik untuk fitur hapus
-                direction: DismissDirection.endToStart, // Geser dari kanan ke kiri
+                direction:
+                    DismissDirection.endToStart, // Geser dari kanan ke kiri
                 background: Container(
                   color: Colors.red,
                   alignment: Alignment.centerRight,
@@ -70,7 +80,9 @@ class _HistoryPageState extends State<HistoryPage> {
                   await DatabaseHelper.instance.delete(sale.id!);
                   // Hapus notifikasi
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Data dihapus")));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Data dihapus")),
+                    );
                   }
                   // Refresh list
                   _refreshSalesList();
@@ -81,10 +93,31 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: const Color(0xFF1B5E20),
-                      child: Text(sale.nomor, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      child: Text(
+                        sale.nomor,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
-                    title: Text(sale.nama, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(dateString), // Tampilkan tanggal
+                    title: Text(
+                      sale.nama,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(dateString),
+                        Text(
+                          "${sale.type} - $priceString",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showDetailPopup(context, sale),
                   ),
@@ -111,6 +144,16 @@ class _HistoryPageState extends State<HistoryPage> {
             _rowDetail("Nama", sale.nama),
             _rowDetail("No HP", sale.noHp),
             _rowDetail("Alamat", sale.alamat),
+            const Divider(),
+            _rowDetail("Tipe Akad", sale.type),
+            _rowDetail(
+              "Nominal",
+              NumberFormat.currency(
+                locale: 'id_ID',
+                symbol: 'Rp ',
+                decimalDigits: 0,
+              ).format(sale.price),
+            ),
             const Divider(height: 30),
             // Tombol Cetak Ulang
             SizedBox(
@@ -118,16 +161,24 @@ class _HistoryPageState extends State<HistoryPage> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context); // Tutup popup dulu
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PdfPreviewPage(sale: sale)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PdfPreviewPage(sale: sale),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.print),
                 label: const Text("Cetak Ulang PDF"),
               ),
-            )
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Tutup")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Tutup"),
+          ),
         ],
       ),
     );
@@ -139,7 +190,16 @@ class _HistoryPageState extends State<HistoryPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text("$label:", style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))),
+          SizedBox(
+            width: 80,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Expanded(child: Text(value)),
         ],
       ),
@@ -153,11 +213,14 @@ class _HistoryPageState extends State<HistoryPage> {
         title: const Text("Hapus Data?"),
         content: const Text("Data yang dihapus tidak bisa dikembalikan."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Batal")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(context, true), 
-            child: const Text("Hapus")
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hapus"),
           ),
         ],
       ),
